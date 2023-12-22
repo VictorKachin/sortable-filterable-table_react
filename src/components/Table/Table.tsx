@@ -7,8 +7,10 @@ export type TableProps = {
 	rows: Data
 }
 
-export const Table = ({ rows }) => {
+export const Table = ({ rows }: TableProps) => {
 	const [sortedRows, setRows] = useState(rows)
+	const [order, setOrder] = useState('asc')
+	const [sortKey, setSortKey] = useState(Object.keys(rows[0])[0])
 
 	const formatEntry = (entry: string | number | boolean) => {
 		if (typeof entry === 'boolean') {
@@ -18,24 +20,70 @@ export const Table = ({ rows }) => {
 		return entry
 	}
 
+	const filter = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const value = event.target.value
+
+		if (value) {
+			setRows([
+				...rows.filter(row => {
+					return Object.values(row).join('').toLowerCase().includes(value)
+				}),
+			])
+		} else {
+			setRows(rows)
+		}
+	}
+	const sort = (value: keyof Data[0], order: string) => {
+		const returnValue = order === 'desc' ? 1 : -1
+
+		setSortKey(value)
+		setRows([
+			...sortedRows.sort(
+				(a, b) =>
+					a[value] > b[value] ? returnValue * -1 : returnValue
+			),
+		])
+	}
+
+	const updateOrder = () => {
+		const updatedOrder = order === 'asc' ? 'desc' : 'asc'
+		setOrder(updatedOrder)
+		sort(sortKey as keyof Data[0], updatedOrder)
+	}
+
 	return (
-		<table>
-			<thead>
-				<tr>
+		<>
+			<div className='controls'>
+				<input type='text' placeholder='Filter items' onChange={filter} />
+				<select onChange={(event) => sort(event.target.value as keyof Data[0], order)}>
 					{Object.keys(rows[0]).map((entry, index) => (
-						<th key={index}>{capitalize(entry)}</th>
+						<option value={entry} key={index}>
+							Order by {capitalize(entry)}
+						</option>
 					))}
-				</tr>
-			</thead>
-			<tbody>
-				{sortedRows.map((row, index) => (
-					<tr key={index}>
-						{Object.values(row).map((entry, columnIndex) => (
-							<td key={columnIndex}>{formatEntry(entry)}</td>
+				</select>
+				<button onClick={updateOrder}>Switch order ({order})</button>
+			</div>
+
+			<table>
+				<thead>
+					<tr>
+						{Object.keys(rows[0]).map((entry, index) => (
+							<th key={index}>{capitalize(entry)}</th>
 						))}
 					</tr>
-				))}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					{sortedRows.map((row, index) => (
+						<tr key={index}>
+							{Object.values(row).map((entry, columnIndex) => (
+								<td key={columnIndex}>{formatEntry(entry)}</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+			{!sortedRows.length && <h1>No results... Try expanding the search</h1>}
+		</>
 	)
 }
