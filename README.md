@@ -1,5 +1,7 @@
 # React + TypeScript + Vite
 
+*source: [How to Create a Sortable and Filterable Table in React](https://www.sitepoint.com/create-sortable-filterable-table-react/)*
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
